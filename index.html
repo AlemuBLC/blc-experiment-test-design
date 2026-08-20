@@ -1,0 +1,3324 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Principal CRO Experiment OS Preview</title>
+<!-- BLC Artefact — Blue Light Card design standards applied (blc-artefact-design).
+     Before editing: load blc-artefact-design skill to maintain brand consistency.
+     To restyle: ask explicitly - "restyle this" or "apply BLC standards throughout". -->
+<style>:root {
+  /* Semantic names used throughout this file, mapped to BLC brand values */
+  --ink: #000000;
+  --muted: #9CA3AF;
+  --line: #D8D8E8;
+  --panel: #FFFFFF;
+  --canvas: #FFFFFF;
+  --soft: #E8E8F4;
+  --green: #00AA44;
+  --green-dark: #000099;
+  --red: #D93025;
+  --amber: #E68000;
+  --blue: #33CCFF;
+  --teal: #000099;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+  /* Official BLC brand variables (blc-artefact-design skill) */
+  --blc-navy:        #000099;
+  --blc-cyan:        #33CCFF;
+  --blc-black:       #000000;
+  --blc-white:       #FFFFFF;
+  --blc-grey-muted:  #9CA3AF;
+
+  --blc-positive:    #1A7A5E;
+  --blc-positive-bg: #E6F4ED;
+  --blc-negative:    #D93025;
+  --blc-negative-bg: #FDE8E8;
+  --blc-amber:       #E68000;
+  --blc-neutral-bg:  #F3F4F6;
+
+  --blc-panel-fill:  #E7E6E6;
+  --blc-table-cat:   #E8E8F4;
+  --blc-table-total: #E8ECFF;
+  --blc-gridline:    #E5E7EB;
+  --blc-border:      #D8D8E8;
+
+  --blc-rag-green:   #00AA44;
+  --blc-rag-red:     #D93025;
+
+  --font-body:    'Aptos', 'Calibri', 'Segoe UI', sans-serif;
+  --font-narrow:  'Aptos Narrow', 'Calibri', 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background: var(--canvas);
+  font-family: var(--font-body);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 24px;
+  border-right: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(18px);
+}
+
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.brand-mark img {
+  display: block;
+  width: 151px;
+  height: 27px;
+}
+
+.eyebrow,
+.label {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: 1.1rem;
+}
+
+h2 {
+  font-size: clamp(1.55rem, 3vw, 2.45rem);
+}
+
+h3 {
+  font-size: 1rem;
+}
+
+.score-panel {
+  display: grid;
+  grid-template-columns: 1fr 76px;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.score-panel strong {
+  display: block;
+  font-size: 2.8rem;
+  line-height: 0.95;
+}
+
+.score-ring {
+  width: 76px;
+  height: 76px;
+}
+
+.score-ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg,
+.ring-arc {
+  fill: none;
+  stroke-width: 10;
+}
+
+.ring-bg {
+  stroke: var(--blc-gridline);
+}
+
+.ring-arc {
+  stroke: var(--red);
+  stroke-linecap: round;
+  stroke-dasharray: 301.59;
+  stroke-dashoffset: 301.59;
+  transition: stroke-dashoffset 220ms ease, stroke 220ms ease;
+}
+
+.status-blocked,
+.status-warning,
+.status-approved {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-weight: 750;
+}
+
+.status-blocked {
+  color: var(--blc-negative);
+  background: var(--blc-negative-bg);
+}
+
+.status-warning {
+  color: var(--blc-amber);
+  background: #FDF1E3;
+}
+
+.status-approved {
+  color: var(--blc-positive);
+  background: var(--blc-positive-bg);
+}
+
+.step-nav {
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.step-btn {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+}
+
+.step-btn:hover,
+.step-btn.active {
+  border-color: var(--line);
+  background: #fff;
+}
+
+.step-num {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.step-btn.done .step-num {
+  color: #fff;
+  background: var(--green);
+}
+
+.step-btn.blocked .step-num {
+  color: #fff;
+  background: var(--red);
+}
+
+.step-name {
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 720;
+}
+
+.step-score {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.side-note {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 10px;
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.side-note p {
+  margin: 0;
+}
+
+.note-dot,
+.state-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 28px;
+}
+
+.topbar,
+.wizard-footer,
+.review-header,
+.topbar-actions,
+.footer-status {
+  display: flex;
+  align-items: center;
+}
+
+.topbar {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topbar-actions {
+  gap: 10px;
+}
+
+.primary-btn,
+.secondary-btn,
+.ghost-btn {
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-weight: 780;
+}
+
+.primary-btn {
+  border: 1px solid var(--green-dark);
+  color: #fff;
+  background: var(--green-dark);
+}
+
+.primary-btn:disabled {
+  cursor: not-allowed;
+  border-color: var(--blc-border);
+  color: var(--blc-white);
+  background: var(--blc-grey-muted);
+}
+
+.secondary-btn {
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: #fff;
+}
+
+.ghost-btn {
+  border: 1px solid transparent;
+  color: var(--muted);
+  background: transparent;
+}
+
+.hero-strip {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(300px, 0.9fr);
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--blc-white);
+  box-shadow: var(--shadow);
+}
+
+.hero-copy p {
+  max-width: 760px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--blc-border);
+  border-radius: 999px;
+  color: var(--green-dark);
+  background: var(--blc-table-total);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.flow-visual {
+  display: grid;
+  grid-template-columns: 1fr 20px 1fr 20px 1fr 20px 1fr;
+  align-items: center;
+}
+
+.flow-node {
+  display: grid;
+  place-items: center;
+  min-height: 58px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 790;
+}
+
+.flow-node.active {
+  border-color: var(--blc-border);
+  color: var(--green-dark);
+  background: var(--blc-table-total);
+}
+
+.flow-line {
+  height: 2px;
+  background: var(--blc-border);
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+.form-panel,
+.review-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.form-panel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.section-intro {
+  display: grid;
+  gap: 8px;
+}
+
+.section-intro p {
+  max-width: 840px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.question-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field label {
+  font-weight: 790;
+}
+
+.field small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.muted-label {
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.required {
+  color: var(--red);
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid var(--blc-border);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fff;
+}
+
+input,
+select {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+textarea {
+  min-height: 94px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 3px solid rgba(40, 102, 199, 0.16);
+  border-color: var(--blue);
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--blc-border);
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 700;
+}
+
+.choice input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: var(--green);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.review-panel {
+  position: sticky;
+  top: 28px;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.review-header {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gate-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 54px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 0.8rem;
+  font-weight: 820;
+}
+
+.gate-list {
+  display: grid;
+  gap: 8px;
+}
+
+.gate-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 8px;
+  align-items: start;
+  min-height: 36px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--blc-neutral-bg);
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.gate-icon {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--red);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.gate-item.done {
+  color: var(--ink);
+}
+
+.gate-item.done .gate-icon {
+  background: var(--green);
+}
+
+.divider {
+  height: 1px;
+  background: var(--line);
+}
+
+.next-action {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.score-card,
+.calculator-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--blc-border);
+  border-radius: 8px;
+  background: var(--blc-table-total);
+}
+
+.score-card {
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+}
+
+.score-card strong {
+  display: block;
+  color: var(--green-dark);
+  font-size: 2.7rem;
+  line-height: 1;
+}
+
+.score-card p,
+.calculator-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.metric-grid div {
+  display: grid;
+  gap: 4px;
+  min-height: 78px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.metric-grid span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.metric-grid strong {
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.helper-copy {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.helper-copy.segment-warning {
+  color: var(--blc-amber);
+  font-weight: 650;
+}
+
+.subsection-heading {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.subsection-heading:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.subsection-heading h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--blc-navy);
+}
+
+.subsection-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.prd-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.prd-panel section {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--blc-white);
+}
+
+.prd-panel h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.prd-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.prd-panel dl {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.35fr) 1fr;
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.prd-panel dt {
+  color: var(--muted);
+  font-weight: 780;
+}
+
+.prd-panel dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.prd-panel ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+}
+
+.wizard-footer {
+  position: sticky;
+  bottom: 0;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding: 16px 0 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--canvas) 32%);
+}
+
+.footer-status {
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 760;
+}
+
+.state-dot {
+  margin: 0;
+  background: var(--red);
+}
+
+.state-dot.done {
+  background: var(--green);
+}
+
+.toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  max-width: min(420px, calc(100vw - 44px));
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 1120px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: relative;
+    height: auto;
+  }
+
+  .step-nav {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    max-height: none;
+  }
+
+  .content-grid,
+  .hero-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .review-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 680px) {
+  .workspace,
+  .sidebar {
+    padding: 16px;
+  }
+
+  .topbar,
+  .wizard-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .field-row,
+  .flow-visual,
+  .metric-grid,
+  .score-card,
+  .prd-panel dl {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-line {
+    width: 2px;
+    height: 14px;
+    justify-self: center;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+<aside class="sidebar">
+<div class="brand-block">
+<div class="brand-mark-text" style="font-family: Aptos, Arial, sans-serif; font-weight:700; font-size:20px; color:#000099; letter-spacing:0.5px;">BLUE<span style="color:#33CCFF;">LIGHT</span>CARD</div></div>
+<div><p class="eyebrow">Part 2 of 3 &middot; Test Design</p><h1>Principal CRO Experiment OS</h1></div>
+</div>
+
+<div class="score-panel">
+<div><span class="label">Launch readiness</span><strong id="scoreValue">0</strong></div>
+<div class="score-ring"><svg viewBox="0 0 120 120">
+<circle class="ring-bg" cx="60" cy="60" r="48"></circle>
+<circle id="scoreArc" class="ring-arc" cx="60" cy="60" r="48"></circle>
+</svg></div>
+<p id="scoreStatus" class="status-blocked">Launch blocked</p>
+</div>
+
+<nav id="stepNav" class="step-nav"></nav>
+</aside>
+
+<main class="workspace">
+<header class="topbar">
+<div>
+<p class="eyebrow">Experiment design builder</p>
+<h2 id="stepTitle">Opportunity Discovery</h2>
+</div>
+<div class="topbar-actions">
+<button id="resetBtn" class="ghost-btn">Reset demo</button>
+<button id="exportBtn" class="primary-btn">Copy PRD summary</button>
+</div>
+</header>
+
+<form id="experimentForm" class="form-panel"></form>
+
+<aside class="review-panel">
+<div class="review-header">
+<h3>Blocking checks</h3>
+<span id="gateCount" class="gate-count">0/0</span>
+</div>
+<div id="gateList"></div>
+<p id="nextAction"></p>
+</aside>
+
+<footer class="wizard-footer">
+<button id="prevBtn">Previous</button>
+<div><span id="sectionStateDot"></span><span id="sectionState"></span></div>
+<button id="nextBtn">Next gate</button>
+</footer>
+</main>
+</div>
+<div id="toast"></div>
+
+<script>const steps = [
+
+  {
+
+    id: "opportunity",
+
+    title: "Opportunity Discovery",
+
+    weight: 20,
+
+    intro:
+
+      "Force the PM to prove this is a real opportunity before they are allowed to create a hypothesis.",
+
+    fields: [
+
+      {
+
+        id: "experimentName",
+
+        label: "Experiment name",
+
+        type: "text",
+
+        required: true,
+
+        help: "Use a plain-language name tied to the page, problem, and behaviour change.",
+
+      },
+
+      {
+
+        id: "businessGoal",
+
+        label: "Business goal",
+
+        type: "textarea",
+
+        required: true,
+
+        help: "What commercial or product outcome makes this experiment worth running?",
+
+      },
+
+      {
+
+        id: "evidenceHierarchy",
+
+        label: "Evidence hierarchy",
+
+        type: "checkbox",
+
+        required: true,
+
+        options: ["Expert opinion", "Case studies", "UX research", "Data analysis", "Experimentation", "Meta analysis"],
+
+        help: "Select every evidence type behind this opportunity. Weaker forms (expert opinion, case studies) should ideally be backed by stronger forms (data analysis, experimentation, meta analysis) further along the hierarchy.",
+
+      },
+
+      {
+
+        id: "evidenceTags",
+
+        label: "Evidence tags",
+
+        type: "checkbox",
+
+        required: true,
+
+        options: ["Friction", "Confusion", "Anxiety", "Distraction", "Motivation", "Trust"],
+
+        help: "Classify the evidence so learnings become searchable later.",
+
+      },
+
+      {
+
+        id: "artifactLinks",
+
+        label: "Visual of suggested change",
+
+        type: "textarea",
+
+        required: true,
+
+        help: "Paste links, filenames, or notes for the evidence artifacts, plus the control vs variant screenshots or Figma frames for the suggested change.",
+
+      },
+
+    ],
+
+  },
+
+  {
+
+    id: "prioritization",
+
+    title: "Prioritisation Framework",
+
+    weight: 10,
+
+    intro:
+
+      "Score the idea using observable CRO signals before any more time is invested, so weak ideas get revisited or amended now rather than after a full problem statement and hypothesis have been written.",
+
+    fields: [
+
+      {
+
+        id: "priorityAboveFold",
+
+        label: "It is above the fold",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: { Yes: 1, No: 0 },
+
+        options: ["Yes", "No"],
+
+      },
+
+      {
+
+        id: "priorityNoticeable",
+
+        label: "Is it noticeable in 5 seconds?",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: { Yes: 3, No: 0 },
+
+        options: ["Yes", "No"],
+
+      },
+
+      {
+
+        id: "priorityAddRemove",
+
+        label: "Are you adding or removing something?",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: { Yes: 3, No: 0 },
+
+        options: ["Yes", "No"],
+
+      },
+
+      {
+
+        id: "priorityMotivation",
+
+        label: "Will this change increase user motivation?",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: { Yes: 1, No: 0 },
+
+        options: ["Yes", "No"],
+
+      },
+
+      {
+
+        id: "priorityTrafficArea",
+
+        label: "Will this be a change on a high-traffic area of the site?",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: { Yes: 1, No: 0 },
+
+        options: ["Yes", "No"],
+
+      },
+
+      {
+
+        id: "priorityQual",
+
+        label: "Did the idea come from qualitative data?",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: { Yes: 1, No: 0 },
+
+        options: ["Yes", "No"],
+
+        help: "Examples: user research, surveys, interviews, support themes, session recordings.",
+
+      },
+
+      {
+
+        id: "priorityQuant",
+
+        label: "Did the idea come from quantitative data?",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: { Yes: 1, No: 0 },
+
+        options: ["Yes", "No"],
+
+        help: "Examples: user behaviour, analytics, heat maps, funnel drops, click data.",
+
+      },
+
+      {
+
+        id: "priorityEngineeringEffort",
+
+        label: "Engineering effort",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: {
+
+          "Backend, database, or API work": 1,
+
+          "Complex journey or checkout work": 2,
+
+          "Frontend static component work": 3,
+
+          "Visual only, such as text or styling": 4,
+
+        },
+
+        options: [
+
+          "Backend, database, or API work",
+
+          "Complex journey or checkout work",
+
+          "Frontend static component work",
+
+          "Visual only, such as text or styling",
+
+        ],
+
+      },
+
+      {
+
+        id: "priorityLegalQa",
+
+        label: "Legal and QA",
+
+        type: "radio",
+
+        required: true,
+
+        scoreMap: {
+
+          "Requires legal sign-off": 1,
+
+          "Requires cross-browser testing": 2,
+
+          "Requires simple QA": 3,
+
+        },
+
+        options: ["Requires legal sign-off", "Requires cross-browser testing", "Requires simple QA"],
+
+      },
+
+      {
+
+        id: "priorityRationale",
+
+        label: "Prioritization rationale",
+
+        type: "textarea",
+
+        required: true,
+
+        help: "Explain why this deserves to run now versus other opportunities.",
+
+      },
+
+    ],
+
+  },
+
+  {
+
+    id: "problem",
+
+    title: "Problem Definition",
+
+    weight: 15,
+
+    intro:
+
+      "Translate research into a precise user problem, affected audience, and measurable business impact.",
+
+    fields: [
+
+      {
+
+        id: "userProblem",
+
+        label: "Exact user problem",
+
+        type: "textarea",
+
+        required: true,
+
+        help: "Example: Users abandon checkout because shipping costs appear too late.",
+
+      },
+
+      {
+
+        id: "proof",
+
+        label: "What proves this problem exists?",
+
+        type: "textarea",
+
+        required: true,
+
+        help: "Include the behavioural evidence, not opinions.",
+
+      },
+
+      {
+
+        id: "affectedMetric",
+
+        label: "Primary metric suffering",
+
+        type: "text",
+
+        required: true,
+
+        help: "Example: checkout completion, trial activation, lead submit rate.",
+
+      },
+
+      {
+
+        id: "affectedUsers",
+
+        label: "Affected users",
+
+        type: "textarea",
+
+        required: true,
+
+        help: "Name the segment: new visitors, returning users, mobile users, geography, traffic source.",
+
+      },
+
+    ],
+
+  },
+
+  {
+
+    id: "hypothesis",
+
+    title: "Hypothesis Creation",
+
+    weight: 15,
+
+    intro:
+
+      "Make the assumption, behaviour change, and expected journey explicit before solution design starts.",
+
+    fields: [
+
+      {
+
+        id: "hypothesisSectionHeading",
+
+        type: "heading",
+
+        text: "The Hypothesis",
+
+        caption: "The assumption, behaviour change, and expected journey you are testing.",
+
+      },
+
+      { id: "ifStatement", label: "If we...", type: "textarea", required: true },
+
+      { id: "thenStatement", label: "Then users will...", type: "textarea", required: true },
+
+      { id: "becauseStatement", label: "Because...", type: "textarea", required: true },
+
+      {
+
+        id: "assumption",
+
+        label: "Assumption being validated",
+
+        type: "textarea",
+
+        required: true,
+
+      },
+
+      {
+
+        id: "behavior",
+
+        label: "Behaviour being changed",
+
+        type: "select",
+
+        required: true,
+
+        options: ["Click CTA", "Start checkout", "Complete purchase", "Submit form", "Create account", "Return again", "Other"],
+
+      },
+
+      {
+
+        id: "behaviorOther",
+
+        label: "Other behaviour",
+
+        type: "textarea",
+
+        requiredWhen: { field: "behavior", value: "Other" },
+
+        placeholder: "Describe the exact user behaviour you want to change.",
+
+      },
+
+      {
+
+        id: "journey",
+
+        label: "Expected user journey: before to after",
+
+        type: "textarea",
+
+        required: true,
+
+      },
+
+      {
+
+        id: "solutionSectionHeading",
+
+        type: "heading",
+
+        text: "The Solution",
+
+        caption: "What is actually being built, and why it should produce the behaviour change above.",
+
+      },
+
+      {
+
+        id: "control",
+
+        label: "Control summary",
+
+        type: "textarea",
+
+        required: true,
+
+        placeholder: "Example: Current checkout shows delivery cost only after users enter their address.",
+
+      },
+
+      {
+
+        id: "variant",
+
+        label: "Variant summary",
+
+        type: "textarea",
+
+        required: true,
+
+        placeholder: "Example: Variant shows an estimated delivery cost range beside the basket total before checkout starts.",
+
+      },
+
+      {
+
+        id: "annotation",
+
+        label: "Variation annotation",
+
+        type: "textarea",
+
+        required: true,
+
+        placeholder: "Example: Added delivery estimate copy to reduce cost anxiety and support the assumption that users need cost clarity earlier.",
+
+        help: "What changed, why it changed, and which hypothesis element it supports.",
+
+      },
+
+      {
+
+        id: "conversionProximity",
+
+        label: "How can we ensure this change will solve the problem we identified?",
+
+        type: "textarea",
+
+        required: true,
+
+        help: (currentState) =>
+          currentState.userProblem
+            ? `Explain how the change you have just described will solve: "${currentState.userProblem}". Be specific about the causal link, not just proximity to the conversion event.`
+            : "Explain how the change you have just described will solve the user problem defined in Problem Definition. Add the problem statement there first so it can be referenced here.",
+
+      },
+
+      {
+
+        id: "reusableLearning",
+
+        label: "What reusable learning will this create?",
+
+        type: "textarea",
+
+        required: true,
+
+        help: "Describe what the business can reuse even if the experiment loses.",
+
+      },
+
+    ],
+
+  },
+
+  {
+
+    id: "design",
+
+    title: "Experiment Design Review",
+
+    weight: 15,
+
+    intro:
+
+      "Define exactly what is changing, which metrics decide success, and which metrics protect the business.",
+
+    fields: [
+
+      {
+
+        id: "category",
+
+        label: "Experiment category",
+
+        type: "radio",
+
+        required: true,
+
+        options: ["Acquisition", "Activation", "Retention", "Revenue"],
+
+      },
+
+      {
+
+        id: "complexity",
+
+        label: "Experiment complexity",
+
+        type: "radio",
+
+        required: true,
+
+        options: ["A/B", "A/B/N", "MVT"],
+
+      },
+
+      {
+
+        id: "primaryGoal",
+
+        label: "Primary Metric",
+
+        type: "textarea",
+
+        required: true,
+
+        carryFrom: "affectedMetric",
+
+        help: "Pulled from the primary metric you named in Problem Definition. Edit it here if the metric for this specific test needs to be more precise.",
+
+      },
+
+      {
+
+        id: "secondaryGoals",
+
+        label: "Secondary Metric",
+
+        type: "textarea",
+
+        required: true,
+
+        placeholder: "There should be at least one metric that ties back to revenue and at least one that ties to engagement or value for the user.",
+
+      },
+
+      {
+
+        id: "guardrails",
+
+        label: "Guardrail metrics",
+
+        type: "checkbox",
+
+        required: true,
+
+        options: ["Revenue", "Bounce rate", "Site speed", "Error rate", "Support contacts", "Accessibility"],
+
+        help: "Launch is blocked without guardrail metrics.",
+
+      },
+
+      {
+
+        id: "guardrailThresholds",
+
+        label: "Guardrail movement limits",
+
+        type: "textarea",
+
+        required: true,
+
+        placeholder: "Example: Revenue must not drop more than 2%. Error rate must not rise more than 0.5pp. Site speed must not slow more than 200ms.",
+
+        help: "For every guardrail metric selected above, state the range it can move within before the test must be stopped.",
+
+      },
+
+    ],
+
+  },
+
+  {
+
+    id: "stats",
+
+    title: "Statistical Validation",
+
+    weight: 15,
+
+    intro:
+
+      "Validate that the test can produce a trustworthy decision before it consumes traffic.",
+
+    fields: [
+
+      {
+
+        id: "confidenceLevel",
+
+        label: "Confidence level",
+
+        type: "select",
+
+        required: true,
+
+        defaultValue: "95%",
+
+        options: ["95%", "90%", "99%"],
+
+        help: "Confidence level is how strict the test is before calling a result statistically reliable.",
+
+      },
+
+      {
+
+        id: "power",
+
+        label: "Statistical power",
+
+        type: "select",
+
+        required: true,
+
+        defaultValue: "80%",
+
+        options: ["80%", "85%", "90%"],
+
+        help: "Statistical power is the chance of detecting the minimum effect if that effect is real.",
+
+      },
+
+      {
+
+        id: "mde",
+
+        label: "Minimum detectable effect",
+
+        type: "number",
+
+        required: true,
+
+        min: 1,
+
+        step: 0.1,
+
+        suffix: "%",
+
+        help: "Minimum detectable effect means the smallest performance change worth detecting. Example: a 5% relative lift.",
+
+      },
+
+      {
+
+        id: "baselineRate",
+
+        label: "Baseline conversion rate",
+
+        type: "number",
+
+        required: true,
+
+        min: 0.1,
+
+        max: 100,
+
+        step: 0.1,
+
+        suffix: "%",
+
+        help: (currentState) =>
+          currentState.primaryGoal
+            ? `Use the current conversion rate for "${currentState.primaryGoal}" among eligible users.`
+            : "Use the current conversion rate for the primary metric among eligible users.",
+
+      },
+
+      {
+
+        id: "variants",
+
+        label: "Number of variants including control",
+
+        type: "number",
+
+        required: true,
+
+        min: 2,
+
+        step: 1,
+
+        defaultValue: "2",
+
+        help: (currentState) => {
+
+          const variantCount = Number(currentState.variants) || 2;
+
+          const guardrailCount = Array.isArray(currentState.guardrails) ? currentState.guardrails.length : 0;
+
+          if (variantCount <= 2 && guardrailCount <= 2) {
+
+            return "Include control as one of the variants.";
+
+          }
+
+          return "Include control as one of the variants. Why this matters: every comparison you run at 95% confidence carries roughly a 5% chance of a false positive on its own. Test 3 variants against control, or watch several guardrail metrics at once, and those individual 5% chances stack up, so the odds that at least one comparison looks 'significant' purely by chance rise well above 5% for the experiment as a whole. This is called the multiple comparisons problem. It is not a reason to avoid A/B/N or MVT tests, but it is a reason to treat a lone significant result among many comparisons with more scepticism, and to consider a stricter confidence threshold or a correction method (such as Bonferroni) when reporting the outcome.";
+
+        },
+
+      },
+
+      {
+
+        id: "segmentPlan",
+
+        label: "Segments to analyse",
+
+        type: "checkbox",
+
+        required: true,
+
+        minSelected: 1,
+
+        options: ["No segment cuts needed", "Device", "Browser", "Geography", "New/returning", "Traffic source"],
+
+        help: "Select only segments needed for the decision. Every segment cut needs roughly its own full sample size, so this feeds directly into the duration estimate below.",
+
+      },
+
+      {
+
+        id: "trafficEligibility",
+
+        label: "Traffic eligibility",
+
+        type: "textarea",
+
+        required: true,
+
+        help: (currentState) =>
+          currentState.affectedUsers
+            ? `Which users and pages qualify? You named the affected users as "${currentState.affectedUsers}" in Problem Definition, confirm they are captured here. Also cover who is excluded (e.g. employees, QA traffic, bots, existing participants), device or geography restrictions, how bucketing and persistence work, and any segments that must be analysed separately.`
+            : "Which users and pages qualify? Cover who is included and excluded (e.g. employees, QA traffic, bots, existing participants), device or geography restrictions, how bucketing and persistence work, and any segments that must be analysed separately.",
+
+      },
+
+      {
+
+        id: "dailyTraffic",
+
+        label: "Eligible visitors per day",
+
+        type: "number",
+
+        required: true,
+
+        min: 1,
+
+        step: 1,
+
+        help: "Use traffic after the targeting and exclusions described above, not total site traffic.",
+
+      },
+
+      {
+
+        id: "contaminationRisk",
+
+        label: "Concurrent experiment / contamination risk",
+
+        type: "textarea",
+
+        required: true,
+
+        placeholder: "Example: No other experiments target this audience or page currently. Or: Renewals V2 also targets returning users on this page until 15 September, overlap risk is low because it changes a different element.",
+
+        help: "This is a manual check for now: list any other experiments currently running on the same audience, page, or flow, and note whether they could interact with this test's result. Once this tool is connected to Amplitude, this check will be automated.",
+
+      },
+
+      {
+
+        id: "sampleRatioMismatch",
+
+        label: "Sample ratio mismatch detection enabled",
+
+        type: "radio",
+
+        required: true,
+
+        acceptedValues: ["Yes"],
+
+        options: ["Yes", "No"],
+
+        help: "Sample ratio mismatch means users are not being split between variants as planned, which can invalidate the result.",
+
+      },
+
+    ],
+
+  },
+
+  {
+
+    id: "governance",
+
+    title: "Pre-Launch Governance",
+
+    weight: 10,
+
+    intro:
+
+      "The team must know what decision will be made for every result before the test launches.",
+
+    fields: [
+
+      { id: "ifWinner", label: "If winner, action will be...", type: "textarea", required: true },
+
+      { id: "ifNeutral", label: "If neutral, action will be...", type: "textarea", required: true },
+
+      { id: "ifLoser", label: "If loser, action will be...", type: "textarea", required: true },
+
+      { id: "rollout", label: "Rollout plan", type: "textarea", required: true },
+
+      { id: "owner", label: "Decision owner", type: "text", required: true },
+
+      { id: "deadline", label: "Decision deadline", type: "date", required: true },
+
+    ],
+
+  },
+
+];
+
+
+
+const state = JSON.parse(localStorage.getItem("croExperimentState") || "{}");
+
+let currentStep = 0;
+
+let reviewMode = false;
+
+
+
+const form = document.querySelector("#experimentForm");
+
+const stepNav = document.querySelector("#stepNav");
+
+const stepTitle = document.querySelector("#stepTitle");
+
+const gateList = document.querySelector("#gateList");
+
+const gateCount = document.querySelector("#gateCount");
+
+const nextAction = document.querySelector("#nextAction");
+
+const scoreValue = document.querySelector("#scoreValue");
+
+const scoreStatus = document.querySelector("#scoreStatus");
+
+const scoreArc = document.querySelector("#scoreArc");
+
+const sectionState = document.querySelector("#sectionState");
+
+const sectionStateDot = document.querySelector("#sectionStateDot");
+
+const prevBtn = document.querySelector("#prevBtn");
+
+const nextBtn = document.querySelector("#nextBtn");
+
+const exportBtn = document.querySelector("#exportBtn");
+
+const resetBtn = document.querySelector("#resetBtn");
+
+const toast = document.querySelector("#toast");
+
+
+
+function fieldLabel(field) {
+
+  return typeof field.label === "function" ? field.label(state) : field.label;
+
+}
+
+
+
+function fieldHelp(field) {
+
+  return typeof field.help === "function" ? field.help(state) : field.help;
+
+}
+
+
+
+function valueFor(field) {
+
+  if (field.type === "checkbox") return state[field.id] || [];
+
+  if (state[field.id]) return state[field.id];
+
+  return state[field.id] || "";
+
+}
+
+
+
+function isComplete(field) {
+
+  if (field.requiredWhen && state[field.requiredWhen.field] !== field.requiredWhen.value) {
+
+    return true;
+
+  }
+
+  const value = valueFor(field);
+
+  if (!field.required && !field.requiredWhen) return true;
+
+  if (Array.isArray(value)) {
+
+    if (field.acceptedValues) {
+
+      return field.acceptedValues.every((item) => value.includes(item));
+
+    }
+
+    return value.length >= (field.minSelected || 1);
+
+  }
+
+  if (field.acceptedValues) {
+
+    return field.acceptedValues.includes(String(value));
+
+  }
+
+  return String(value).trim().length > 0;
+
+}
+
+
+
+function stepCompletion(step) {
+
+  const required = step.fields.filter(
+
+    (field) => field.required || (field.requiredWhen && state[field.requiredWhen.field] === field.requiredWhen.value),
+
+  );
+
+  const complete = required.filter(isComplete).length;
+
+  return {
+
+    complete,
+
+    required: required.length,
+
+    percent: required.length ? complete / required.length : 1,
+
+    done: complete === required.length,
+
+  };
+
+}
+
+
+
+function totalScore() {
+
+  const totalWeight = steps.reduce((sum, step) => sum + step.weight, 0);
+
+  const earned = steps.reduce((sum, step) => sum + step.weight * stepCompletion(step).percent, 0);
+
+  return Math.round((earned / totalWeight) * 100);
+
+}
+
+
+
+function readiness(score) {
+
+  if (score >= 90 && steps.every((step) => stepCompletion(step).done)) {
+
+    return { label: "Launch approved", className: "status-approved", color: "var(--green)" };
+
+  }
+
+  if (score >= 75) {
+
+    return { label: "Launch warning", className: "status-warning", color: "var(--amber)" };
+
+  }
+
+  return { label: "Launch blocked", className: "status-blocked", color: "var(--red)" };
+
+}
+
+
+
+function prioritizationScore() {
+
+  const step = steps.find((item) => item.id === "prioritization");
+
+  const scoreFields = step.fields.filter((field) => field.scoreMap);
+
+  const breakdown = scoreFields.map((field) => {
+
+    const answer = state[field.id] || "";
+
+    return {
+
+      label: fieldLabel(field),
+
+      answer: answer || "[missing]",
+
+      score: field.scoreMap[answer] || 0,
+
+    };
+
+  });
+
+  const score = breakdown.reduce((sum, item) => sum + item.score, 0);
+
+  let priority = "Revisit and amend";
+
+  if (score >= 15) priority = "Do ASAP";
+
+  else if (score >= 12) priority = "High priority";
+
+  else if (score >= 9) priority = "Medium priority";
+
+
+
+  return {
+
+    score,
+
+    max: 18,
+
+    priority,
+
+    breakdown,
+
+  };
+
+}
+
+
+
+function inverseNormal(probability) {
+
+  if (probability <= 0 || probability >= 1) return NaN;
+
+
+
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
+
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+
+  const low = 0.02425;
+
+  const high = 1 - low;
+
+
+
+  if (probability < low) {
+
+    const q = Math.sqrt(-2 * Math.log(probability));
+
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+
+      ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+
+  }
+
+
+
+  if (probability <= high) {
+
+    const q = probability - 0.5;
+
+    const r = q * q;
+
+    return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+
+      (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+
+  }
+
+
+
+  const q = Math.sqrt(-2 * Math.log(1 - probability));
+
+  return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+
+    ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+
+}
+
+
+
+function sampleSizeEstimate() {
+
+  const baseline = Number(state.baselineRate) / 100;
+
+  const mde = Number(state.mde) / 100;
+
+  const confidence = Number(String(state.confidenceLevel || "95%").replace("%", "")) / 100;
+
+  const power = Number(String(state.power || "80%").replace("%", "")) / 100;
+
+  const variants = Math.max(2, Number(state.variants) || 2);
+
+  const dailyTraffic = Number(state.dailyTraffic) || 0;
+
+
+
+  if (!baseline || !mde || !confidence || !power || baseline >= 1) {
+
+    return null;
+
+  }
+
+
+
+  const variantRate = Math.min(0.999, baseline * (1 + mde));
+
+  const pooled = (baseline + variantRate) / 2;
+
+  const alpha = 1 - confidence;
+
+  const zAlpha = inverseNormal(1 - alpha / 2);
+
+  const zBeta = inverseNormal(power);
+
+  const numerator =
+
+    zAlpha * Math.sqrt(2 * pooled * (1 - pooled)) +
+
+    zBeta * Math.sqrt(baseline * (1 - baseline) + variantRate * (1 - variantRate));
+
+  const perVariant = Math.ceil((numerator * numerator) / Math.pow(variantRate - baseline, 2));
+
+  const total = perVariant * variants;
+
+  const days = dailyTraffic ? Math.ceil(total / dailyTraffic) : null;
+
+  const segmentSelections = Array.isArray(state.segmentPlan)
+
+    ? state.segmentPlan.filter((item) => item !== "No segment cuts needed")
+
+    : [];
+
+  const segmentCount = segmentSelections.length;
+
+  const segmentDays = segmentCount && days ? Math.ceil(days * segmentCount) : null;
+
+
+
+  return {
+
+    baseline,
+
+    variantRate,
+
+    perVariant,
+
+    total,
+
+    days,
+
+    variants,
+
+    segmentCount,
+
+    segmentDays,
+
+    segmentSelections,
+
+  };
+
+}
+
+
+
+function save() {
+
+  localStorage.setItem("croExperimentState", JSON.stringify(state));
+
+}
+
+
+
+function updateValue(field, event, renderAfter = true) {
+
+  if (field.type === "checkbox") {
+
+    const selected = new Set(state[field.id] || []);
+
+    if (event.target.checked) selected.add(event.target.value);
+
+    else selected.delete(event.target.value);
+
+    state[field.id] = Array.from(selected);
+
+  } else {
+
+    state[field.id] = event.target.value;
+
+  }
+
+  save();
+
+  if (renderAfter) render();
+
+}
+
+
+
+function renderField(field) {
+
+  if (field.type === "heading") {
+
+    const caption = field.caption ? `<p>${field.caption}</p>` : "";
+
+    return `<div class="subsection-heading"><h4>${field.text}</h4>${caption}</div>`;
+
+  }
+
+  if (field.requiredWhen && state[field.requiredWhen.field] !== field.requiredWhen.value) {
+
+    return "";
+
+  }
+
+  if (field.defaultValue && !state[field.id]) {
+
+    state[field.id] = field.defaultValue;
+
+    save();
+
+  }
+
+  if (field.carryFrom && !state[field.id] && state[field.carryFrom]) {
+
+    state[field.id] = state[field.carryFrom];
+
+    save();
+
+  }
+
+  const value = valueFor(field);
+
+  const fieldId = `field-${field.id}`;
+
+  const required = field.required || field.requiredWhen ? '<span class="required">*</span>' : "";
+
+  const resolvedHelp = fieldHelp(field);
+
+  const help = resolvedHelp ? `<small>${resolvedHelp}</small>` : "";
+
+
+
+  if (field.type === "textarea") {
+
+    return `
+
+      <div class="field">
+
+        <label for="${fieldId}">${fieldLabel(field)} ${required}</label>
+
+        <textarea id="${fieldId}" data-field="${field.id}" ${field.placeholder ? `placeholder="${escapeHtml(field.placeholder)}"` : ""}>${escapeHtml(value)}</textarea>
+
+        ${help}
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  if (field.type === "number") {
+
+    return `
+
+      <div class="field">
+
+        <label for="${fieldId}">${fieldLabel(field)} ${field.suffix ? `<span class="muted-label">(${field.suffix})</span>` : ""} ${required}</label>
+
+        <input
+
+          id="${fieldId}"
+
+          type="number"
+
+          value="${escapeHtml(value)}"
+
+          data-field="${field.id}"
+
+          ${field.placeholder ? `placeholder="${escapeHtml(field.placeholder)}"` : ""}
+
+          ${field.min !== undefined ? `min="${field.min}"` : ""}
+
+          ${field.max !== undefined ? `max="${field.max}"` : ""}
+
+          ${field.step !== undefined ? `step="${field.step}"` : ""}
+
+        />
+
+        ${help}
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  if (field.type === "select") {
+
+    return `
+
+      <div class="field">
+
+        <label for="${fieldId}">${fieldLabel(field)} ${required}</label>
+
+        <select id="${fieldId}" data-field="${field.id}">
+
+          <option value="">Select one</option>
+
+          ${field.options
+
+            .map((option) => `<option value="${option}" ${value === option ? "selected" : ""}>${option}</option>`)
+
+            .join("")}
+
+        </select>
+
+        ${help}
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  if (field.type === "checkbox" || field.type === "radio") {
+
+    const selected = Array.isArray(value) ? value : [value];
+
+    return `
+
+      <fieldset class="field">
+
+        <label>${fieldLabel(field)} ${required}</label>
+
+        <div class="choice-grid">
+
+          ${field.options
+
+            .map(
+
+              (option) => `
+
+                <label class="choice">
+
+                  <input
+
+                    type="${field.type}"
+
+                    name="${field.id}"
+
+                    value="${option}"
+
+                    data-field="${field.id}"
+
+                    ${selected.includes(option) ? "checked" : ""}
+
+                  />
+
+                  <span>${option}</span>
+
+                </label>
+
+              `,
+
+            )
+
+            .join("")}
+
+        </div>
+
+        ${help}
+
+      </fieldset>
+
+    `;
+
+  }
+
+
+
+  if (field.type === "range") {
+
+    const current = value || 5;
+
+    state[field.id] = current;
+
+    return `
+
+      <div class="field">
+
+        <label for="${fieldId}">${fieldLabel(field)}: <span>${current}</span>/10 ${required}</label>
+
+        <input id="${fieldId}" type="range" min="${field.min}" max="${field.max}" value="${current}" data-field="${field.id}" />
+
+        ${help}
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  return `
+
+    <div class="field">
+
+      <label for="${fieldId}">${fieldLabel(field)} ${required}</label>
+
+      <input id="${fieldId}" type="${field.type}" value="${escapeHtml(value)}" data-field="${field.id}" ${field.placeholder ? `placeholder="${escapeHtml(field.placeholder)}"` : ""} />
+
+      ${help}
+
+    </div>
+
+  `;
+
+}
+
+
+
+function render() {
+
+  if (reviewMode) {
+
+    renderFinalPrd();
+
+    return;
+
+  }
+
+
+
+  const step = steps[currentStep];
+
+  const completion = stepCompletion(step);
+
+  const score = totalScore();
+
+  const status = readiness(score);
+
+
+
+  stepTitle.textContent = step.title;
+
+  form.innerHTML = `
+
+    <div class="section-intro">
+
+      <p class="eyebrow">Gate ${currentStep + 1} of ${steps.length}</p>
+
+      <h3>${step.title}</h3>
+
+      <p>${step.intro}</p>
+
+    </div>
+
+    <div class="question-grid">
+
+      ${step.fields.map(renderField).join("")}
+
+    </div>
+
+  `;
+
+
+
+  if (step.id === "prioritization") {
+
+    const priority = prioritizationScore();
+
+    form.insertAdjacentHTML(
+
+      "beforeend",
+
+      `<div class="score-card">
+
+        <div>
+
+          <p class="eyebrow">Priority score</p>
+
+          <strong>${priority.score}/${priority.max}</strong>
+
+        </div>
+
+        <p><strong>${priority.priority}</strong>. 15+ should be done ASAP, 12-14 is high priority, 9-11 is medium priority, and below 9 should be revisited and amended.</p>
+
+      </div>`,
+
+    );
+
+  }
+
+
+
+  if (step.id === "stats") {
+
+    form.insertAdjacentHTML("beforeend", renderSampleSizeCalculator());
+
+  }
+
+
+
+  renderNav();
+
+  renderGates(step);
+
+  scoreValue.textContent = score;
+
+  scoreStatus.textContent = status.label;
+
+  scoreStatus.className = status.className;
+
+  scoreArc.style.stroke = status.color;
+
+  scoreArc.style.strokeDashoffset = 301.59 - (301.59 * score) / 100;
+
+  prevBtn.disabled = currentStep === 0;
+
+  nextBtn.textContent = currentStep === steps.length - 1 ? "Review launch" : "Next gate";
+
+  sectionState.textContent = completion.done ? "Section complete" : "Section incomplete";
+
+  sectionStateDot.classList.toggle("done", completion.done);
+
+
+
+  form.querySelectorAll("[data-field]").forEach((input) => {
+
+    input.addEventListener("input", (event) => {
+
+      const field = step.fields.find((item) => item.id === event.target.dataset.field);
+
+      updateValue(field, event, field.type === "range");
+
+    });
+
+    input.addEventListener("change", (event) => {
+
+      const field = step.fields.find((item) => item.id === event.target.dataset.field);
+
+      updateValue(field, event);
+
+    });
+
+  });
+
+}
+
+
+
+function renderFinalPrd() {
+
+  const score = totalScore();
+
+  const status = readiness(score);
+
+  const priority = prioritizationScore();
+
+  stepTitle.textContent = "Final PRD";
+
+  form.innerHTML = `
+
+    <div class="section-intro">
+
+      <p class="eyebrow">Launch review</p>
+
+      <h3>Experiment PRD</h3>
+
+      <p>This is the generated handoff for product, engineering, QA, monitoring, analysis, and launch decision review.</p>
+
+    </div>
+
+    <div class="prd-panel">
+
+      ${renderPrdHtml(priority)}
+
+    </div>
+
+  `;
+
+  gateCount.textContent = `${steps.filter((step) => stepCompletion(step).done).length}/${steps.length}`;
+
+  gateList.innerHTML = steps
+
+    .map((step) => {
+
+      const done = stepCompletion(step).done;
+
+      return `
+
+        <div class="gate-item ${done ? "done" : ""}">
+
+          <span class="gate-icon">${done ? "✓" : "!"}</span>
+
+          <span>${step.title}</span>
+
+        </div>
+
+      `;
+
+    })
+
+    .join("");
+
+  nextAction.textContent = `Prioritisation score is ${priority.score}/${priority.max}: ${priority.priority}.`;
+
+  scoreValue.textContent = score;
+
+  scoreStatus.textContent = status.label;
+
+  scoreStatus.className = status.className;
+
+  scoreArc.style.stroke = status.color;
+
+  scoreArc.style.strokeDashoffset = 301.59 - (301.59 * score) / 100;
+
+  prevBtn.disabled = false;
+
+  nextBtn.textContent = "Copy PRD summary";
+
+  sectionState.textContent = "Final PRD generated";
+
+  sectionStateDot.classList.add("done");
+
+  renderNav();
+
+}
+
+
+
+function renderPrdHtml(priority) {
+
+  const estimate = sampleSizeEstimate();
+
+  const fieldRows = steps
+
+    .map((step) => {
+
+      const rows = step.fields
+
+        .filter((field) => field.type !== "heading")
+
+        .filter((field) => !field.requiredWhen || state[field.requiredWhen.field] === field.requiredWhen.value)
+
+        .map((field) => {
+
+          const value = valueFor(field);
+
+          const output = Array.isArray(value) ? value.join(", ") : value;
+
+          return `<dt>${escapeHtml(fieldLabel(field))}</dt><dd>${escapeHtml(output || "[missing]")}</dd>`;
+
+        })
+
+        .join("");
+
+      return `<section><h4>${escapeHtml(step.title)}</h4><dl>${rows}</dl></section>`;
+
+    })
+
+    .join("");
+
+
+
+  return `
+
+    <section>
+
+      <h4>Prioritisation Score</h4>
+
+      <p><strong>${priority.score}/${priority.max}: ${priority.priority}</strong></p>
+
+      <dl>
+
+        ${priority.breakdown
+
+          .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.answer)}: ${item.score} point${item.score === 1 ? "" : "s"}</dd>`)
+
+          .join("")}
+
+      </dl>
+
+    </section>
+
+    ${
+
+      estimate
+
+        ? `<section>
+
+            <h4>Sample Size Estimate</h4>
+
+            <dl>
+
+              <dt>Required visitors per variant</dt><dd>${estimate.perVariant.toLocaleString()}</dd>
+
+              <dt>Total required sample</dt><dd>${estimate.total.toLocaleString()}</dd>
+
+              <dt>Estimated duration</dt><dd>${estimate.days ? `${estimate.days} days` : "Eligible traffic required"}</dd>
+
+              ${estimate.segmentCount ? `<dt>Segment-adjusted duration</dt><dd>${estimate.segmentDays ? `${estimate.segmentDays} days for ${estimate.segmentSelections.join(", ")}` : "Add eligible traffic to estimate"}</dd>` : ""}
+
+            </dl>
+
+          </section>`
+
+        : ""
+
+    }
+
+    ${fieldRows}
+
+    <section>
+
+      <h4>QA Handoff Checklist</h4>
+
+      <ul>
+
+        <li>Audience targeting</li>
+
+        <li>Exclusion rules</li>
+
+        <li>Variant assignment</li>
+
+        <li>Sticky bucketing</li>
+
+        <li>Event firing</li>
+
+        <li>Revenue tracking</li>
+
+        <li>Analytics consistency</li>
+
+        <li>No flicker</li>
+
+        <li>No performance degradation</li>
+
+        <li>No SEO impact</li>
+
+        <li>WCAG AA accessibility</li>
+
+      </ul>
+
+    </section>
+
+    <section>
+
+      <h4>During-Test Monitoring And Analysis Handoff</h4>
+
+      <ul>
+
+        <li>Monitor sample ratio mismatch.</li>
+
+        <li>Monitor traffic loss, event drops, tracking failures, revenue anomalies, and page speed degradation.</li>
+
+        <li>Report statistical significance, confidence interval, effect size, revenue impact, segment winners, segment losers, novelty effect, and time-based trend.</li>
+
+        <li>Store page, element, audience, hypothesis, metric, outcome, screenshots, and related experiment tags in the knowledge repository.</li>
+
+      </ul>
+
+    </section>
+
+  `;
+
+}
+
+
+
+function renderSampleSizeCalculator() {
+
+  const estimate = sampleSizeEstimate();
+
+  if (!estimate) {
+
+    return `
+
+      <div class="calculator-card">
+
+        <div>
+
+          <p class="eyebrow">Sample size calculator</p>
+
+          <h3>Enter baseline rate and minimum detectable effect</h3>
+
+        </div>
+
+        <p class="helper-copy">The calculator will estimate required visitors per variant, total sample, and likely run time from eligible traffic.</p>
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  const daysText = estimate.days ? `${estimate.days} days` : "Add eligible traffic to estimate duration";
+
+  const segmentNote = estimate.segmentCount
+
+    ? `<p class="helper-copy segment-warning">Segment check: with ${estimate.segmentCount} segment${estimate.segmentCount > 1 ? "s" : ""} selected (${estimate.segmentSelections.join(", ")}), a reliable read per segment needs roughly ${estimate.segmentDays ? `${estimate.segmentDays} days` : "significantly more traffic"} rather than ${daysText}. Confirm this runtime is realistic before committing to segment-level reporting.</p>`
+
+    : `<p class="helper-copy">Assumes a two-sided test comparing the control against each variant. No segment cuts were flagged, so this estimate is for the overall population only.</p>`;
+
+  return `
+
+    <div class="calculator-card">
+
+      <div>
+
+        <p class="eyebrow">Sample size calculator</p>
+
+        <h3>Estimated traffic requirement</h3>
+
+      </div>
+
+      <div class="metric-grid">
+
+        <div><span>Per variant</span><strong>${estimate.perVariant.toLocaleString()}</strong></div>
+
+        <div><span>Total sample</span><strong>${estimate.total.toLocaleString()}</strong></div>
+
+        <div><span>Estimated duration</span><strong>${daysText}</strong></div>
+
+      </div>
+
+      ${segmentNote}
+
+    </div>
+
+  `;
+
+}
+
+
+
+function renderNav() {
+
+  stepNav.innerHTML = steps
+
+    .map((step, index) => {
+
+      const completion = stepCompletion(step);
+
+      const className = [
+
+        "step-btn",
+
+        index === currentStep ? "active" : "",
+
+        completion.done ? "done" : "blocked",
+
+      ]
+
+        .filter(Boolean)
+
+        .join(" ");
+
+      return `
+
+        <button class="${className}" type="button" data-step="${index}">
+
+          <span class="step-num">${completion.done ? "✓" : index + 1}</span>
+
+          <span class="step-name">${step.title}</span>
+
+          <span class="step-score">${completion.complete}/${completion.required}</span>
+
+        </button>
+
+      `;
+
+    })
+
+    .join("");
+
+
+
+  stepNav.querySelectorAll("button").forEach((button) => {
+
+    button.addEventListener("click", () => {
+
+      reviewMode = false;
+
+      currentStep = Number(button.dataset.step);
+
+      render();
+
+    });
+
+  });
+
+}
+
+
+
+function renderGates(step) {
+
+  const gates = step.fields.filter(
+
+    (field) => field.required || (field.requiredWhen && state[field.requiredWhen.field] === field.requiredWhen.value),
+
+  );
+
+  const complete = gates.filter(isComplete);
+
+  gateCount.textContent = `${complete.length}/${gates.length}`;
+
+  gateList.innerHTML = gates
+
+    .map((field) => {
+
+      const done = isComplete(field);
+
+      const needed = field.minSelected ? `Select all ${field.minSelected} required checks` : fieldLabel(field);
+
+      const message = field.acceptedValues && !done ? `${fieldLabel(field)}: ${field.acceptedValues.join(" or ")} required` : needed;
+
+      return `
+
+        <div class="gate-item ${done ? "done" : ""}">
+
+          <span class="gate-icon">${done ? "✓" : "!"}</span>
+
+          <span>${done ? fieldLabel(field) : message}</span>
+
+        </div>
+
+      `;
+
+    })
+
+    .join("");
+
+
+
+  const firstMissing = gates.find((field) => !isComplete(field));
+
+  nextAction.textContent = firstMissing
+
+    ? `Complete: ${fieldLabel(firstMissing)}.`
+
+    : "This gate is complete. Move to the next CRO review stage.";
+
+}
+
+
+
+function escapeHtml(value) {
+
+  return String(value)
+
+    .replaceAll("&", "&amp;")
+
+    .replaceAll("<", "&lt;")
+
+    .replaceAll(">", "&gt;")
+
+    .replaceAll('"', "&quot;");
+
+}
+
+
+
+function currentSummary() {
+
+  const priority = prioritizationScore();
+
+  const estimate = sampleSizeEstimate();
+
+  const lines = [
+
+    "Principal CRO Experiment Design Summary",
+
+    "=======================================",
+
+    "",
+
+    `Launch readiness score: ${totalScore()}`,
+
+    `Status: ${readiness(totalScore()).label}`,
+
+    `Prioritisation score: ${priority.score}/${priority.max} - ${priority.priority}`,
+
+    "",
+
+  ];
+
+
+
+  lines.push("Prioritisation Framework Score");
+
+  lines.push("==============================");
+
+  priority.breakdown.forEach((item) => {
+
+    lines.push(`- ${item.label}: ${item.answer} (${item.score})`);
+
+  });
+
+  lines.push("");
+
+
+
+  if (estimate) {
+
+    lines.push("Sample Size Estimate");
+
+    lines.push("====================");
+
+    lines.push(`- Required visitors per variant: ${estimate.perVariant.toLocaleString()}`);
+
+    lines.push(`- Total required sample: ${estimate.total.toLocaleString()}`);
+
+    lines.push(`- Estimated duration: ${estimate.days ? `${estimate.days} days` : "Eligible traffic required"}`);
+
+    if (estimate.segmentCount) {
+
+      lines.push(`- Segment-adjusted duration: ${estimate.segmentDays ? `${estimate.segmentDays} days` : "Add eligible traffic to estimate"} for ${estimate.segmentSelections.join(", ")}`);
+
+    }
+
+    lines.push("");
+
+  }
+
+
+
+  steps.forEach((step) => {
+
+    const completion = stepCompletion(step);
+
+    lines.push(`${step.title} (${completion.complete}/${completion.required})`);
+
+    step.fields.forEach((field) => {
+
+      if (field.type === "heading") return;
+
+      const value = valueFor(field);
+
+      const output = Array.isArray(value) ? value.join(", ") : value;
+
+      lines.push(`- ${fieldLabel(field)}: ${output || "[missing]"}`);
+
+    });
+
+    lines.push("");
+
+  });
+
+
+
+  lines.push("CRO Review For Product Manager");
+
+  lines.push("==============================");
+
+  lines.push("- Confirm the problem is proven by both quantitative and qualitative evidence.");
+
+  lines.push("- Confirm the prioritisation score is strong enough to justify roadmap priority.");
+
+  lines.push("- Confirm selected segments were considered before sample size was calculated.");
+
+  lines.push("- Confirm the experiment can reach the required sample size within a realistic runtime.");
+
+  lines.push("- Confirm sample ratio mismatch detection is enabled before launch.");
+
+  lines.push("- Confirm every result path has a business decision before the test launches.");
+
+  lines.push("");
+
+
+
+  lines.push("Product Manager Instructions For Engineering");
+
+  lines.push("============================================");
+
+  lines.push("- Build the experiment exactly against the documented control, variant, targeting, exclusions, and bucketing rules.");
+
+  lines.push("- Use the calculated sample size and eligible traffic assumptions as launch feasibility constraints.");
+
+  lines.push("- Instrument all primary, secondary, guardrail, and monitoring metrics before QA.");
+
+  lines.push("- Preserve user assignment across sessions and devices where identity resolution allows it.");
+
+  lines.push("- Do not launch until the QA checklist below is complete and attached to the PRD.");
+
+  lines.push("");
+
+
+
+  lines.push("QA Handoff Checklist");
+
+  lines.push("====================");
+
+  [
+
+    "Audience targeting",
+
+    "Exclusion rules",
+
+    "Variant assignment",
+
+    "Sticky bucketing",
+
+    "Event firing",
+
+    "Revenue tracking",
+
+    "Analytics consistency",
+
+    "No flicker",
+
+    "No performance degradation",
+
+    "No SEO impact",
+
+    "WCAG AA accessibility",
+
+  ].forEach((item) => lines.push(`- [ ] ${item}`));
+
+  lines.push("");
+
+
+
+  lines.push("During-Test Monitoring And Analysis Handoff");
+
+  lines.push("===========================================");
+
+  [
+
+    "Monitor sample ratio mismatch.",
+
+    "Monitor traffic loss.",
+
+    "Monitor event drops.",
+
+    "Monitor tracking failures.",
+
+    "Monitor revenue anomalies.",
+
+    "Monitor page speed degradation.",
+
+    "Report statistical significance.",
+
+    "Report confidence interval.",
+
+    "Report effect size.",
+
+    "Report revenue impact.",
+
+    "Report segment winners and losers.",
+
+    "Check for novelty effect and time-based trend.",
+
+    "Store learnings in the knowledge repository.",
+
+  ].forEach((item) => lines.push(`- [ ] ${item}`));
+
+  lines.push("");
+
+
+
+  return lines.join("\n");
+
+}
+
+
+
+function showToast(message) {
+
+  toast.textContent = message;
+
+  toast.classList.add("show");
+
+  window.setTimeout(() => toast.classList.remove("show"), 2200);
+
+}
+
+
+
+prevBtn.addEventListener("click", () => {
+
+  if (reviewMode) {
+
+    reviewMode = false;
+
+    currentStep = steps.length - 1;
+
+    render();
+
+    return;
+
+  }
+
+  currentStep = Math.max(0, currentStep - 1);
+
+  render();
+
+});
+
+
+
+nextBtn.addEventListener("click", () => {
+
+  if (reviewMode) {
+
+    exportBtn.click();
+
+    return;
+
+  }
+
+  const step = steps[currentStep];
+
+  if (!stepCompletion(step).done) {
+
+    showToast("This CRO gate is incomplete. Finish the blocking checks first.");
+
+    return;
+
+  }
+
+  if (currentStep === steps.length - 1) {
+
+    reviewMode = true;
+
+    render();
+
+    return;
+
+  }
+
+  currentStep = Math.min(steps.length - 1, currentStep + 1);
+
+  render();
+
+});
+
+
+
+exportBtn.addEventListener("click", async () => {
+
+  const summary = currentSummary();
+
+  try {
+
+    await navigator.clipboard.writeText(summary);
+
+    showToast("PRD summary copied to clipboard.");
+
+  } catch {
+
+    const fallback = document.createElement("textarea");
+
+    fallback.value = summary;
+
+    fallback.setAttribute("readonly", "");
+
+    fallback.style.position = "fixed";
+
+    fallback.style.left = "-9999px";
+
+    document.body.appendChild(fallback);
+
+    fallback.select();
+
+    document.execCommand("copy");
+
+    fallback.remove();
+
+    showToast("PRD summary copied to clipboard.");
+
+  }
+
+});
+
+
+
+resetBtn.addEventListener("click", () => {
+
+  localStorage.removeItem("croExperimentState");
+
+  Object.keys(state).forEach((key) => delete state[key]);
+
+  currentStep = 0;
+
+  reviewMode = false;
+
+  render();
+
+  showToast("Demo reset.");
+
+});
+
+
+
+render();</script>
+</body>
+</html>

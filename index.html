@@ -812,8 +812,24 @@ select:focus {
   }
 
   .step-nav {
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     max-height: none;
+    overflow: visible;
+  }
+
+  .step-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    min-height: 34px;
+    padding: 6px 12px;
+  }
+
+  .step-name {
+    white-space: nowrap;
   }
 
   .content-grid,
